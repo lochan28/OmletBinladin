@@ -15,6 +15,7 @@ export type AppSpec =
   | { app: 'cricket' }
   | { app: 'run' }
   | { app: 'blocks' }
+  | { app: 'shaktirun' }
 
 export interface OS {
   open: (spec: AppSpec) => void
@@ -41,6 +42,7 @@ export function runExe(os: OS, action: string) {
     case 'bsod': return os.bsod()
     case 'cricket': return os.open({ app: 'cricket' })
     case 'blocks': return os.open({ app: 'blocks' })
+    case 'shaktirun': return os.open({ app: 'shaktirun' })
     case 'gta':
       sfx.error()
       return os.open({ app: 'msg', title: 'GTA3 Setup', icon: '💿', text: 'Please insert Disc 2 of 47.\n\n(Disc 1 was a pirated copy from Palika Bazaar. Disc 2 is a Kishore Kumar MP3 CD.)' })
