@@ -133,6 +133,7 @@ export const drive: FileNode = {
       { kind: 'exe', name: 'GTA3.exe', action: 'gta', icon: '🚗' },
       { kind: 'exe', name: 'mine_sweeper.exe', action: 'mines', icon: '💣' },
       { kind: 'exe', name: 'cricket_99.exe', action: 'cricket', icon: '🏏' },
+      { kind: 'exe', name: 'shaktimaan_blocks.exe', action: 'blocks', icon: '🧱' },
     ] },
     { kind: 'folder', name: 'Program Files', icon: '📁', children: [
       { kind: 'folder', name: 'Lakshmi Chit Fund', icon: '💰', children: [

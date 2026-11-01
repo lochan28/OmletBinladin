@@ -118,3 +118,17 @@ body { font-family: "Pixelated MS Sans Serif", Arial, sans-serif; font-size: 11p
   .window { left: 0 !important; top: 0 !important; width: 100% !important; max-height: calc(100% - 30px); }
   .app-col, .ie-page, .notepad { min-width: 0; width: 100%; }
 }
+
+/* ---------- Shaktimaan Blocks ---------- */
+.blocks { display: flex; gap: 10px; padding: 8px; outline: none; }
+.blocks-board { position: relative; display: grid; grid-template-columns: repeat(10, 18px); grid-auto-rows: 18px; background: #000; border: 2px inset #808080; overflow: hidden; }
+.blocks-board .cell { box-shadow: inset 2px 2px rgba(255,255,255,.5), inset -2px -2px rgba(0,0,0,.4); }
+.blocks-board .cell:not([style]) { box-shadow: none; }
+.blocks-side { width: 110px; font-size: 12px; }
+.blocks-side b { font-size: 20px; }
+.hero-fly { position: absolute; top: 40%; left: -60%; color: #ff0; text-align: center; white-space: nowrap; animation: fly 1.8s ease-in-out forwards; text-shadow: 0 0 6px #f00; }
+.hero-fly .emoji { display: block; font-size: 40px; animation: spin .3s linear infinite; }
+@keyframes fly { to { left: 110%; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.blocks-over { position: absolute; inset: 0; background: rgba(0,0,0,.75); color: #f00; font: bold 20px "Courier New"; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.blocks-over small { color: #fff; font-size: 11px; margin-top: 8px; }
