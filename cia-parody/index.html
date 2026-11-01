@@ -1,0 +1,337 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>CIA-95 · Spy Trail</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:#0a1424 url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 500' preserveAspectRatio='xMidYMid slice'><defs><radialGradient id='g' cx='50%' cy='42%' r='75%'><stop offset='0' stop-color='%231b3a66'/><stop offset='1' stop-color='%23060d1a'/></radialGradient><pattern id='p' width='40' height='40' patternUnits='userSpaceOnUse'><path d='M40 0H0V40' fill='none' stroke='%2340a0ff' stroke-opacity='.09'/></pattern></defs><rect width='800' height='500' fill='url(%23g)'/><rect width='800' height='500' fill='url(%23p)'/><g transform='translate(400 190)' fill='none' stroke='%23c9d6ea' stroke-opacity='.35'><circle r='150' stroke-width='3'/><circle r='128' stroke-dasharray='4 6'/><circle r='92'/><path d='M0-115L14-14 115 0 14 14 0 115-14 14-115 0-14-14Z' fill='%23c9d6ea' fill-opacity='.13'/><path d='M-80-80L-10-10M80-80L10-10M-80 80L-10 10M80 80L10 10'/></g><g font-family='monospace' text-anchor='middle' fill='%23c9d6ea'><text x='400' y='390' font-size='22' letter-spacing='6' fill-opacity='.7'>COVERT OPERATIONS DIVISION</text><text x='400' y='418' font-size='13' letter-spacing='4' fill='%23ff5a5a' fill-opacity='.85'>TOP SECRET // NOFORN</text></g></svg>") center/cover no-repeat;color:#000;font:12px Tahoma,"MS Sans Serif",Arial,sans-serif;user-select:none}
+.r,.b,.win{background:#c0c0c0;border:2px solid;border-color:#fff #000 #000 #fff;box-shadow:inset -1px -1px #808080}
+.b{font:inherit;padding:3px 10px;color:#000}.b:active,.on{border-color:#000 #fff #fff #000;box-shadow:inset 1px 1px #808080}
+.s{border:2px solid;border-color:#808080 #fff #fff #808080}
+#desk{position:absolute;inset:0 0 30px;display:flex;flex-direction:column;flex-wrap:wrap;align-content:flex-start;padding:8px}
+.ic{width:88px;text-align:center;color:#fff;padding:4px;cursor:default;word-break:break-all}.ic i{font-style:normal;font-size:34px;display:block}.ic.sel span{background:#000080;outline:1px dotted #ff0}
+.win{position:absolute;display:flex;flex-direction:column;max-width:100%}
+.tb{background:#808080;color:#fff;font-weight:bold;padding:2px 3px;display:flex;justify-content:space-between;align-items:center;cursor:default;touch-action:none}.win.act .tb{background:linear-gradient(90deg,#000080,#1084d0)}
+.tb .b{padding:0 5px;margin-left:2px;line-height:13px}
+.bd{flex:1;min-height:0;position:relative;overflow:auto}
+#bar{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;gap:3px;padding:2px;z-index:9000;align-items:center}
+.tab{width:130px;overflow:hidden;white-space:nowrap;text-align:left}
+#clk{margin-left:auto;padding:3px 10px}
+#sm{position:absolute;left:2px;bottom:30px;width:190px;z-index:9001;display:none}
+#sm div{padding:9px 10px;font-size:13px}#sm div:hover{background:#000080;color:#fff}
+#crt{position:fixed;inset:0;pointer-events:none;z-index:99999;background:repeating-linear-gradient(rgba(0,0,0,.2) 0 1px,transparent 1px 3px),radial-gradient(transparent 60%,rgba(0,0,0,.35))}
+#boot{position:fixed;inset:0;background:#000;color:#0f0;z-index:100000;display:flex;align-items:center;justify-content:center;font:12px 'Press Start 2P',monospace;text-align:center;line-height:2;cursor:pointer}
+canvas{image-rendering:pixelated;display:block}
+.term{background:#000;color:#0f0;font:13px monospace;padding:6px;height:100%;overflow:auto;white-space:pre-wrap;user-select:text}
+.pf{font:9px 'Press Start 2P',monospace;line-height:2;color:#0f0}
+</style></head><body>
+<div id=desk></div><div id=sm class=r></div>
+<div id=bar class=r><button class=b id=st><b>⊞ Start</b></button><span id=tabs style="display:flex;gap:3px"></span><span id=clk class=s></span></div>
+<div id=crt></div><div id=boot>CIA-95 SECURE TERMINAL<br><br>▶ CLICK TO BOOT</div>
+<script>
+const $=s=>document.querySelector(s),S={unlock:false,done:false},K={};let AC,mute=false;
+const snd=(f,d=.1,t='square',v=.04,dl=0)=>{if(mute)return;try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain(),T=AC.currentTime+dl;o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,T);g.gain.exponentialRampToValueAtTime(1e-4,T+d);o.connect(g);g.connect(AC.destination);o.start(T);o.stop(T+d)}catch(e){}};
+const chime=()=>[523,659,784,1047,784,1319].forEach((f,i)=>snd(f,.5,'sine',.08,i*.18));
+const W={};let Z=10,A=null,G=null;
+/* ---------- window manager ---------- */
+function open(id,title,w,h,o={}){
+ if(W[id]){if(W[id].min)mini(id);foc(id);return W[id]}
+ const e=document.createElement('div'),n=Object.keys(W).length%6;
+ e.className='win';e.style.cssText=`left:${o.x??30+n*26}px;top:${o.y??24+n*24}px;width:${w}px;${h?'height:'+h+'px':''}`;
+ e.innerHTML='<div class=tb><span>'+title+'</span><span><button class=b data-a=m>_</button><button class=b data-a=x>□</button><button class=b data-a=c>×</button></span></div><div class=bd></div>';
+ document.body.append(e);
+ const w_={e,body:e.lastChild,min:0,max:0,close:o.close};W[id]=w_;
+ const tab=document.createElement('button');tab.className='b tab';tab.textContent=title;
+ tab.onclick=()=>{if(w_.min||A==id)mini(id);else foc(id)};$('#tabs').append(tab);w_.tab=tab;
+ e.onpointerdown=ev=>{foc(id);if(ev.target.closest('button'))return;if(!ev.target.closest('.tb')||w_.max)return;
+  const dx=ev.clientX-e.offsetLeft,dy=ev.clientY-e.offsetTop;
+  const mv=m=>{e.style.left=m.clientX-dx+'px';e.style.top=Math.max(0,m.clientY-dy)+'px'},up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up)};
+  addEventListener('pointermove',mv);addEventListener('pointerup',up)};
+ e.onclick=ev=>{const a=ev.target.dataset&&ev.target.dataset.a;if(a=='c')shut(id);if(a=='m')mini(id);if(a=='x')maxi(id)};
+ if(o.max)maxi(id);foc(id);snd(600,.04);return w_}
+function foc(id){A=id;for(const k in W){W[k].e.classList.toggle('act',k==id);W[k].tab.classList.toggle('on',k==id&&!W[k].min)}W[id].e.style.zIndex=++Z}
+function mini(id){const w=W[id];w.min=!w.min;w.e.style.display=w.min?'none':'flex';w.min?w.tab.classList.remove('on'):foc(id)}
+function maxi(id){const w=W[id],e=w.e;w.max=!w.max;if(w.max){w.sv=e.style.cssText;e.style.left=e.style.top='0';e.style.width='100%';e.style.height='calc(100% - 30px)'}else e.style.cssText=w.sv}
+function shut(id){const w=W[id];if(!w)return;w.close&&w.close();w.e.remove();w.tab.remove();delete W[id];if(G&&G.win==id)G=null;const ks=Object.keys(W);ks.length&&foc(ks[ks.length-1])}
+function msg(t,x,icon='⚠️'){const id='m'+Math.random(),w=open(id,t,300,0,{x:innerWidth/2-150,y:innerHeight/3});
+ w.body.innerHTML=`<div style="display:flex;gap:12px;padding:14px;align-items:center"><span style="font-size:30px">${icon}</span><span>${x}</span></div><div style="text-align:center;padding-bottom:10px"><button class=b style="width:80px">OK</button></div>`;
+ w.body.querySelector('button').onclick=()=>shut(id);snd(220,.2,'sawtooth')}
+addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName))return;K[e.code]=1;if(G){if(/Arrow|Space/.test(e.code))e.preventDefault();G.k&&G.k(e.code)}});
+addEventListener('keyup',e=>K[e.code]=0);
+/* ---------- desktop ---------- */
+function icons(){const d=$('#desk');d.innerHTML='';
+ [['📁','My Computer',comp],['🔒','Tetris_Decoder.exe',tetris],[S.unlock?'📂':'🔐','CIA_Classified_Archives',arch],['📻','Hawala_Tracer.log',()=>hawala()],['🌐','ONION_Browser.exe',()=>dark()],['📝','Notepad.txt',()=>note()],['🗑️','Recycle Bin',bin]].forEach(([i,n,f])=>{
+  const e=document.createElement('div');e.className='ic';e.innerHTML=`<i>${i}</i><span>${n}</span>`;let t=0;
+  e.onclick=()=>{d.querySelectorAll('.ic').forEach(x=>x.classList.remove('sel'));e.classList.add('sel');const now=Date.now();if(now-t<450){f();t=0}else t=now};d.append(e)})}
+const SM=[['📁 My Files',()=>comp()],['💻 CIA Terminal',()=>term()],['📝 Notepad',()=>note()],['⚙️ Settings',()=>sett()],['⏻ Shut Down',()=>off()]];
+SM.forEach(([n,f])=>{const d=document.createElement('div');d.textContent=n;d.onclick=()=>{$('#sm').style.display='none';f()};$('#sm').append(d)});
+$('#st').onclick=e=>{e.stopPropagation();const s=$('#sm');s.style.display=s.style.display=='block'?'none':'block'};
+addEventListener('click',()=>$('#sm').style.display='none');
+const tick=()=>$('#clk').textContent=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});tick();setInterval(tick,1e3);
+$('#boot').onclick=()=>{$('#boot').remove();chime();icons()};
+function comp(){const w=open('comp','My Computer',380,230);w.body.innerHTML='<pre style="margin:8px;font:12px monospace;user-select:text">C:\\\n ├─ WINDOWS\n ├─ CIA\n │   ├─ TETRIS_DECODER.EXE\n │   └─ ARCHIVES\\ '+(S.unlock?'[DECRYPTED]':'[LOCKED]')+'\n ├─ AGENT_NOTES.TXT\n └─ PAGER.SYS</pre>'}
+const rot=s=>s.replace(/[a-zA-Z]/g,c=>String.fromCharCode((c<='Z'?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26));
+function bin(){const w=open('bin','Recycle Bin',300,190);w.body.innerHTML='';
+ [['readme_FIRST.txt','Congrats, you found the first egg. The coffee machine on floor 3 is also an informant.'],['pager_backup.dat','Battery: 3%. Last msg: "MEET AT 0300. BRING THE GOOD STAMPS."'],['Minesweeper.exe','Error: landmine detected. Wrong game, agent.'],['notes_encrypted.txt','Decrypted (ROT-13): '+rot('Gur nepuvirf ner jurer lbh yrnir gurz.')]].forEach(([n,t])=>{const b=document.createElement('div');b.style.cssText='padding:5px 8px;cursor:default';b.textContent='📄 '+n;b.onclick=()=>msg(n,t,'📄');w.body.append(b)})}
+function term(){const w=open('term','CIA Terminal',460,280);w.body.innerHTML='<div class=term><span id=o>CIA-OS v9.5 — type HELP\n</span>&gt; <input style="background:none;border:0;color:#0f0;font:inherit;outline:0;width:80%"></div>';
+ const i=w.body.querySelector('input'),o=w.body.querySelector('#o');
+ i.onkeydown=e=>{snd(300+Math.random()*300,.02,'square',.02);if(e.key!='Enter')return;const c=i.value.trim().toLowerCase();i.value='';
+  const R={help:'help whoami status clear',whoami:'agent//NEPTUNE-7',status:S.unlock?'ARCHIVES: DECRYPTED':'ARCHIVES: LOCKED - run Tetris_Decoder.exe'}[c];
+  if(c=='clear')o.textContent='';else o.textContent+='> '+c+'\n'+(R||'bad command')+'\n'}}
+function sett(){const w=open('set','Settings',240,0);w.body.innerHTML='<div style="padding:14px;line-height:2.2"><label><input type=checkbox id=c1 checked> CRT scanlines</label><br><label><input type=checkbox id=c2 checked> Sound</label></div>';
+ w.body.querySelector('#c1').onchange=e=>$('#crt').style.display=e.target.checked?'block':'none';w.body.querySelector('#c2').onchange=e=>mute=!e.target.checked}
+function off(){const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#000;color:#f80;z-index:100000;display:flex;align-items:center;justify-content:center;text-align:center;font:16px monospace;cursor:pointer';
+ d.innerHTML="It's now safe to turn off<br>your computer.<br><br>(click to reboot)";d.onclick=()=>{d.remove();chime()};document.body.append(d)}
+function arch(){if(!S.unlock){snd(150,.3,'sawtooth');return msg('ACCESS DENIED','Archive encrypted. Clear 3 lines in Tetris_Decoder.exe to decrypt.','🔒')}
+ const w=open('arch','CIA_Classified_Archives',430,230),st='<b style="color:#c00;border:2px solid #c00;padding:0 4px;display:inline-block;transform:rotate(-8deg)">COMPLETED</b>';w.body.innerHTML='';
+ [['📼 Dossier 01','Operation_Neptune.exe','Target: Osama Bin Laden',neptune,S.done],['💰 Dossier 02','Hawala_Money_Trail','Map trace: follow the money across countries',hawala,S.haw],['🎧 Dossier 03','Intercepted_Tapes','Morse tuner — offline in this build']].forEach(([a,n,d,f,dn])=>{
+  const r=document.createElement('div');r.style.cssText='padding:8px 10px;border-bottom:1px solid #808080;display:flex;justify-content:space-between;align-items:center;cursor:default';
+  r.innerHTML=`<span><b>${a}</b> · ${n}<br><small>${d}</small></span>${dn?st:''}`;r.onclick=()=>f?f():msg(n,d+'.','🔧');w.body.append(r)})}
+/* ---------- Tetris decoder ---------- */
+function tetris(){if(S.unlock)return msg('Tetris_Decoder.exe','Archives already decrypted.','✅');
+ const w=open('tet','Tetris_Decoder.exe',380,470,{close:()=>cancelAnimationFrame(raf)});w.body.style.background='#000';
+ w.body.innerHTML='<div class=pf style="display:flex;gap:10px;padding:8px"><canvas width=200 height=400 style="border:2px solid #0f0"></canvas><div>DECRYPT<br>CLEAR 3 LINES<br><br>LINES <span id=ln>0</span>/3<br><br>←→ MOVE<br>↑ ROTATE<br>↓ SOFT<br>SPACE DROP</div></div>';
+ const x=w.body.querySelector('canvas').getContext('2d'),P=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]],C=['#0ff','#ff0','#a0f','#48f','#f80','#0f0','#f33'];
+ let g=[...Array(20)].map(_=>Array(10).fill(0)),p,px,py,n=0,acc=0,last=0,raf,over=0;
+ const hit=(m,a,b)=>m.some((r,j)=>r.some((v,i)=>v&&(a+i<0||a+i>9||b+j>19||(g[b+j]&&g[b+j][a+i]))));
+ const sp=()=>{const k=Math.random()*7|0;p={m:P[k],c:C[k]};px=3;py=0;if(hit(p.m,px,py))g.forEach(r=>r.fill(0))};
+ const mv=(dx,dy)=>{if(!hit(p.m,px+dx,py+dy)){px+=dx;py+=dy;return 1}};
+ const win=()=>{over=1;const t=document.createElement('div');t.className='term';t.style.cssText='position:absolute;inset:0;font-size:12px';w.body.append(t);
+  ['> TETRIS DECODER: 3/3 LINES','> BYPASSING FIREWALL ...... OK','> OVERRIDE.SH --root ....... OK','> DECRYPTING ARCHIVES ...... 100%','> ACCESS GRANTED'].forEach((s,i)=>setTimeout(()=>{t.textContent+=s+'\n';snd(400+i*100,.08)},i*600));
+  setTimeout(()=>{S.unlock=true;icons();shut('tet');chime();msg('ACCESS GRANTED','CIA_Classified_Archives is now unlocked.','🔓')},3400)};
+ const lock=()=>{p.m.forEach((r,j)=>r.forEach((v,i)=>v&&(g[py+j][px+i]=p.c)));let k=0;g=g.filter(r=>r.some(v=>!v)||!++k);while(g.length<20)g.unshift(Array(10).fill(0));
+  n+=k;w.body.querySelector('#ln').textContent=Math.min(n,3);k&&snd(880,.15);if(n>=3)return win();sp()};
+ G={win:'tet',k:k=>{if(over)return;if(/ArrowLeft|KeyA/.test(k))mv(-1,0);else if(/ArrowRight|KeyD/.test(k))mv(1,0);else if(/ArrowDown|KeyS/.test(k))mv(0,1);
+  else if(/ArrowUp|KeyW/.test(k)){const r=p.m[0].map((_,i)=>p.m.map(r=>r[i]).reverse());if(!hit(r,px,py))p.m=r}else if(k=='Space'){while(mv(0,1));lock()}}};
+ const loop=t=>{raf=requestAnimationFrame(loop);if(!over){acc+=t-last;if(acc>800){acc=0;if(!mv(0,1))lock()}}last=t;
+  x.fillStyle='#001a00';x.fillRect(0,0,200,400);g.forEach((r,j)=>r.forEach((v,i)=>{if(v){x.fillStyle=v;x.fillRect(i*20,j*20,19,19)}}));
+  if(!over){x.fillStyle=p.c;p.m.forEach((r,j)=>r.forEach((v,i)=>v&&x.fillRect((px+i)*20,(py+j)*20,19,19)))}};
+ sp();raf=requestAnimationFrame(loop)}
+/* ---------- Notepad ---------- */
+const NT={'Attacks_on_USA.txt':`ATTACKS ON THE USA — CASE NOTES
+(public record, major incidents; not exhaustive)
+
+1993-02-26  WORLD TRADE CENTER BOMBING, New York
+  Truck bomb in the North Tower garage. 6 killed, 1,000+ injured. Ramzi Yousef and accomplices convicted.
+
+1995-04-19  OKLAHOMA CITY BOMBING (domestic)
+  Truck bomb at the Murrah Federal Building. 168 killed. Timothy McVeigh (executed 2001), Terry Nichols (life).
+
+1996-06-25  KHOBAR TOWERS, Saudi Arabia
+  Truck bomb at a US military housing complex. 19 US airmen killed.
+
+1998-08-07  US EMBASSY BOMBINGS, Nairobi + Dar es Salaam
+  Simultaneous truck bombs. 224 killed, thousands injured. Al-Qaeda.
+
+2000-10-12  USS COLE, Aden, Yemen
+  Small-boat suicide bombing. 17 US sailors killed. Al-Qaeda.
+
+2001-09-11  SEPTEMBER 11 ATTACKS
+  Four hijacked airliners: World Trade Center, Pentagon, Flight 93 (Shanksville, PA). 2,977 victims killed. Al-Qaeda.
+
+2001-09/10  ANTHRAX LETTERS
+  5 killed. FBI named Bruce Ivins as the sole culprit; he died in 2008 before trial.
+
+2001-12-22  SHOE BOMB ATTEMPT (Flight 63)
+  Richard Reid. Failed; life sentence.
+
+2009-11-05  FORT HOOD SHOOTING
+  13 killed. Nidal Hasan sentenced to death.
+
+2009-12-25  UNDERWEAR BOMB ATTEMPT (Northwest 253)
+  Umar Farouk Abdulmutallab, backed by AQAP. Failed.
+
+2012-09-11  BENGHAZI, Libya
+  4 Americans killed, including Ambassador Chris Stevens.
+
+2013-04-15  BOSTON MARATHON BOMBING
+  3 killed at the finish line, 260+ injured; an MIT officer was killed days later. Tsarnaev brothers.
+
+2015-12-02  SAN BERNARDINO
+  14 killed. Both attackers killed by police.
+
+2016-06-12  PULSE NIGHTCLUB, Orlando
+  49 killed. Attacker killed by police.
+
+2017-10-31  NEW YORK TRUCK ATTACK
+  8 killed. Sayfullo Saipov convicted.
+
+2018-10-27  PITTSBURGH SYNAGOGUE (domestic extremism)
+  11 killed. Attacker convicted.
+
+2019-08-03  EL PASO WALMART (domestic extremism)
+  23 killed. Attacker convicted.
+
+2025-01-01  NEW ORLEANS TRUCK ATTACK
+  14 killed. Attacker killed by police; ISIS-inspired.`,
+'Watchlist.txt':`TERROR WATCHLIST — STATUS FILE
+(public record; ordering is not official)
+
+OSAMA BIN LADEN — al-Qaeda founder. Behind the 1998 embassy bombings, USS Cole and 9/11.
+  KILLED 2011-05-02 by US Navy SEALs, Abbottabad, Pakistan.
+
+AYMAN AL-ZAWAHIRI — al-Qaeda leader after bin Laden.
+  KILLED 2022-07-31, US drone strike, Kabul.
+
+KHALID SHEIKH MOHAMMED — principal planner of 9/11.
+  CAPTURED 2003, Pakistan. Held at Guantanamo; military case unresolved.
+
+RAMZI YOUSEF — 1993 WTC bomber.
+  CAPTURED 1995, Islamabad. Life sentence in a US prison.
+
+OMAR ABDEL-RAHMAN — "Blind Sheikh", convicted over 1993 plots.
+  DIED in US prison, 2017.
+
+MOHAMED ATTA — lead 9/11 hijacker.
+  DIED in the attack.
+
+ANWAR AL-AWLAKI — AQAP operational planner and propagandist.
+  KILLED 2011-09-30, drone strike, Yemen.
+
+ABU MUSAB AL-ZARQAWI — al-Qaeda in Iraq.
+  KILLED 2006-06-07, airstrike.
+
+ABU BAKR AL-BAGHDADI — ISIS leader.
+  DIED 2019-10-27 during a US raid in Syria.
+
+SAIF AL-ADEL — senior al-Qaeda figure, reported de facto leader.
+  AT LARGE (reported to be in Iran).
+
+TIMOTHY MCVEIGH — Oklahoma City bomber.
+  EXECUTED 2001-06-11.
+
+TERRY NICHOLS — Oklahoma City accomplice.
+  Life sentence.
+
+NIDAL HASAN — Fort Hood shooter.
+  Death sentence (military court).
+
+DZHOKHAR TSARNAEV — Boston bomber.
+  Death sentence; imprisoned. Brother Tamerlan was killed in 2013.
+
+RICHARD REID — shoe bomber.
+  Life sentence.`,
+'My_Notes.txt':'AGENT NOTES\n\n'};
+function note(f='Attacks_on_USA.txt'){const w=open('note','Notepad',580,430);w.body.style.display='flex';w.body.style.flexDirection='column';
+ w.body.innerHTML='<div style="padding:3px 4px;display:flex;gap:4px;flex-wrap:wrap"></div><textarea spellcheck=false style="flex:1;min-height:0;border:2px solid;border-color:#808080 #fff #fff #808080;font:13px monospace;resize:none;padding:4px;user-select:text;background:#fff;color:#000"></textarea>';
+ const bar=w.body.firstChild,ta=w.body.lastChild;let cur=f;
+ const show=n=>{cur=n;ta.value=NT[n];ta.scrollTop=0;[...bar.children].forEach(b=>b.classList.toggle('on',b.textContent==n))};
+ Object.keys(NT).forEach(n=>{const b=document.createElement('button');b.className='b';b.textContent=n;b.onclick=()=>show(n);bar.append(b)});
+ ta.oninput=()=>NT[cur]=ta.value;ta.onkeydown=()=>snd(300+Math.random()*200,.02,'square',.02);show(f)}
+/* ---------- Hawala money trail (map + connect the dots) ---------- */
+function hawala(){const w=open('haw','Hawala_Money_Trail — Funds Tracer',664,500,{close:()=>cancelAnimationFrame(raf)});
+ const N={Houston:[-95,30],London:[0,51],Istanbul:[29,41],Dubai:[55,25],Karachi:[67,25],Kabul:[69,34],Mumbai:[73,19],Nairobi:[37,-1]},O=['Houston','London','Dubai','Karachi','Kabul'],AM=['$480K','$450K','$440K','$430K'];
+ const pt=([lo,la])=>[(lo+110)*3.2,(60-la)*4],M=[[[-165,70],[-100,72],[-60,60],[-55,48],[-80,25],[-97,18],[-117,32],[-125,48],[-165,62]],[[-80,10],[-60,10],[-35,-6],[-50,-30],[-60,-60]],[[-10,36],[-10,55],[30,70],[45,55],[30,38]],[[-17,15],[-5,35],[35,32],[50,10],[40,-20],[20,-35],[10,-5],[-10,5]],[[45,55],[60,75],[90,78],[90,10],[75,8],[60,25],[45,40]]];
+ let s=0,raf,tk=0;w.body.style.background='#000';
+ w.body.innerHTML='<canvas width=640 height=280 style="width:100%;display:block;cursor:crosshair"></canvas><div class=pf style="padding:8px;font-size:8px;line-height:2.4"></div>';
+ const cv=w.body.querySelector('canvas'),x=cv.getContext('2d'),lg=cv.nextSibling;
+ const led=()=>{lg.innerHTML='LEDGER — CLICK THE CITIES IN ORDER<br>'+[0,1,2,3].map(i=>`<span style="color:${i<s-1?'#0f0':i==s-1?'#0f0':i==s?'#ff0':'#666'}">${i+1}. ${O[i]} → ${O[i+1]} ${AM[i]} ${i<s-1?'✔':''}</span>`).join('<br>')+(s==5?'<br><span style="color:#f33">FUNDS FROZEN</span>':'')};
+ led();
+ const loop=()=>{raf=requestAnimationFrame(loop);tk++;x.fillStyle='#04121f';x.fillRect(0,0,640,280);x.fillStyle='#0b3a2a';
+  M.forEach(a=>{x.beginPath();a.forEach((q,i)=>{const [X,Y]=pt(q);i?x.lineTo(X,Y):x.moveTo(X,Y)});x.fill()});
+  x.strokeStyle='#0f0';x.lineWidth=2;x.beginPath();for(let i=0;i<s-1;i++){const a=pt(N[O[i]]),b=pt(N[O[i+1]]);x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1])}x.stroke();
+  for(const n in N){const [X,Y]=pt(N[n]),vis=O.indexOf(n)>=0&&O.indexOf(n)<s;x.fillStyle=vis?'#0f0':'#fff';x.beginPath();x.arc(X,Y,5,0,7);x.fill();
+   if(n==O[s]){x.strokeStyle='#ff0';x.beginPath();x.arc(X,Y,9+Math.sin(tk/8)*3,0,7);x.stroke()}
+   x.fillStyle='#fff';x.font='bold 11px monospace';x.fillText(n,X+9,Y-7)}};
+ cv.onclick=e=>{if(s>4)return;const r=cv.getBoundingClientRect(),mx=(e.clientX-r.left)*640/r.width,my=(e.clientY-r.top)*280/r.height;
+  const n=Object.keys(N).find(k=>{const [X,Y]=pt(N[k]);return Math.hypot(X-mx,Y-my)<18});if(!n)return;
+  if(n==O[s]){s++;snd(500+s*120,.12);led();if(s==5)setTimeout(()=>{S.haw=true;W.arch&&arch();msg('FUNDS FROZEN','$430K frozen at Kabul. Lead: the US-side sender is a vendor on a dark-web market. Opening ONION Browser…','💰');setTimeout(dark,1200)},500)}
+  else{snd(180,.15,'sawtooth');lg.style.background='#400';setTimeout(()=>lg.style.background='',200)}};
+ loop()}
+/* ---------- Dark web browser (fictional, CIA monitoring view) ---------- */
+const WARES=[['Weapons','Surplus rifle crate ×10','₿ 4.2','Ghost_HOU','USA','No serials. Pickup only. Seller geolocation pending.'],['Weapons','Handgun lot ×5','₿ 1.9','Ghost_HOU','USA','Same seller as the rifle crate. Pickup only.'],['Weapons','Body armor, military surplus','₿ 0.4','IronVeil','EU','Stock reported stolen from a depot.'],['Narcotics','Diverted Rx pills ×500','₿ 0.8','PharmaPhantom','USA','Counterfeit labels. Contamination risk flagged.'],['Narcotics','Powder, 1kg [sample withheld]','₿ 2.6','NightMarket_K','USA','Lab status: unknown cut.'],['Narcotics','Unlicensed vape cartridges ×100','₿ 0.3','GreenGhost','USA','No testing, no licence.'],['Medical','Human organs — [REDACTED BY CIA FILTER]','₿ 9.9','Dr_Silent','???','Evidence only. Trafficking ring suspected. Escalated to task force.'],['Fake IDs','US passport + licence set','₿ 1.1','PaperTrail','USA','Forgery. Print signature matches a Houston shop.'],['Cyber','Stolen card dump ×10k','₿ 0.6','Cipher_X','RU','Linked to a bank breach.'],['Laundering','Hawala-style transfer service','8% fee','AlHawalaBot','UAE','Routes funds Houston → London → Dubai → Karachi → Kabul.']];
+function dark(){if(!S.haw){snd(150,.3,'sawtooth');return msg('ONION_Browser.exe','No lead yet. Trace the Hawala money trail first.','🌐')}
+ const w=open('web','ONION Browser — Shadow Bazaar',640,460),ev=new Set();let cat='All';
+ w.body.style.cssText+=';background:#000;color:#0f0';
+ w.body.innerHTML='<div style="display:flex;gap:4px;padding:4px;background:#c0c0c0"><button class=b>◀</button><button class=b>▶</button><input readonly value="http://shdwbzr3k7q.onion/market" style="flex:1" class=s></div><div id=pg style="padding:10px;font:13px monospace"></div>';
+ const pg=w.body.querySelector('#pg'),go=f=>{pg.innerHTML='Connecting through 3 relays…';snd(300,.1);setTimeout(f,700)};
+ const home=()=>{pg.innerHTML=`<h2 style="color:#f33;margin:0">☠ SHADOW BAZAAR</h2><div style="color:#888">CIA Cyber Unit · passive monitoring · evidence tagged ${ev.size}/5</div><div style="margin:8px 0">${['All',...new Set(WARES.map(x=>x[0]))].map(c=>`<button class=b data-c="${c}">${c}</button>`).join(' ')}</div>`+WARES.map((x,i)=>cat=='All'||x[0]==cat?`<div data-i="${i}" style="border:1px solid #0a0;padding:6px;margin:4px 0;cursor:pointer">${ev.has(i)?'🚩 ':''}<b>${x[1]}</b><br><small style="color:#aaa">${x[0]} · ${x[2]} · vendor ${x[3]} · ships ${x[4]}</small></div>`:'').join('')};
+ const item=i=>{const x=WARES[i];pg.innerHTML=`<button class=b data-h=1>◀ Back</button><h3 style="color:#f33">${x[1]}</h3><p>Price: ${x[2]}<br>Vendor: ${x[3]} · Ships from: ${x[4]}</p><p style="color:#aaa">${x[5]}</p><button class=b data-t=${i}>🚩 TAG AS EVIDENCE</button> ${ev.has(i)?'<b style="color:#ff0">TAGGED</b>':''}`};
+ pg.onclick=e=>{const c=e.target.closest('[data-c]'),i=e.target.closest('[data-i]'),t=e.target.closest('[data-t]');
+  if(c){cat=c.dataset.c;go(home)}else if(i)go(()=>item(+i.dataset.i));else if(e.target.closest('[data-h]'))go(home);
+  else if(t){ev.add(+t.dataset.t);snd(900,.1);item(+t.dataset.t);if(ev.size==5&&!S.web){S.web=true;msg('CASE FILED','5 listings tagged. Vendor Ghost_HOU geolocated to Houston, USA. Case file sent to the FBI liaison.','📁')}}};
+ home()}
+/* ---------- Operation Neptune platformer ---------- */
+const LV=[
+{n:'LEVEL 1 · KARACHI ROOFTOPS',w:2600,sky:['#201040','#d0607a'],pc:'#6a5a6a',tp:'#9a8a9a',goal:2540,
+ p:[[0,320,800,40],[850,320,560,40],[1460,320,600,40],[2110,320,490,40],[320,260,130,60],[520,220,110,100],[960,250,120,70],[1160,200,120,120],[1600,240,140,80],[1800,190,140,130],[2300,250,160,70]],
+ e:[[20,292,20,290,1.2,'g'],[640,292,640,750,1.2,'g'],[870,292,870,950,1.4,'g'],[960,222,960,1070,1,'g'],[1490,292,1490,1590,1.4,'g'],[1800,162,1800,1930,1.2,'g'],[2150,292,2150,2290,1.5,'g']],
+ k:[[380,235],[560,195],[1000,225],[1840,165],[2350,225]],h:[]},
+{n:'LEVEL 2 · TORA BORA CAVES',w:2800,sky:['#0a1a30','#4a7aa0'],pc:'#7aa8c8',tp:'#fff',ice:1,goal:2740,
+ p:[[0,320,540,40],[590,270,130,90],[770,220,130,140],[950,270,130,90],[1130,320,400,40],[1580,260,120,100],[1750,210,120,150],[1920,260,100,100],[2070,320,730,40]],
+ e:[[300,304,100,500,2,'d'],[1300,304,1150,1500,2,'d'],[2450,292,2420,2780,1.2,'g']],
+ k:[[640,235],[810,185],[1790,175],[1960,225]],h:[[200,308],[420,308],[1250,308],[2300,308]]},
+{n:'LEVEL 3 · ABBOTTABAD COMPOUND',w:800,sky:['#050510','#303050'],pc:'#555',tp:'#888',boss:1,
+ p:[[0,320,800,40],[140,250,110,12],[550,250,110,12],[345,185,110,12]],e:[[200,292,150,300,1.3,'g']],k:[],h:[]}];
+LV.forEach(l=>l.P=l.p.map(([x,y,w,h])=>({x,y,w,h})));
+function neptune(){
+ const w=open('nep','Operation_Neptune.exe — SPY TRAIL: TORA BORA',640,400,{max:1,close:()=>{clearInterval(mus);cancelAnimationFrame(raf)}});
+ w.body.style.background='#000';w.body.innerHTML='<canvas width=640 height=360 style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain"></canvas>';
+ const c=w.body.querySelector('canvas').getContext('2d');
+ let lv=0,l=LV[0],p,bu=[],eb=[],en=[],pk=[],b=null,fr=0,lives=5,sc=0,st=0,ct=0,bt=0,bm='',cd=0,dead=0,acc=0,last=0,raf,tk=0;
+ G={win:'nep'};
+ const ov=(a,q)=>a.x<q.x+q.w&&a.x+a.w>q.x&&a.y<q.y+q.h&&a.y+a.h>q.y;
+ const load=n=>{lv=n;l=LV[n];p={x:40,y:280,w:14,h:28,vx:0,vy:0,on:0,f:1,c:0};bu=[];eb=[];fr=0;
+  en=l.e.map(([x,y,a,b,s,t])=>({x,y,a,b,s,t,d:1,w:t=='d'?20:14,h:t=='d'?16:28}));pk=l.k.map(([x,y])=>({x,y,w:10,h:10}));
+  b=l.boss?{x:600,y:286,w:26,h:34,hp:3,d:-1,t:0,hit:0}:null;bm=l.n;bt=150};
+ const finish=()=>{S.done=true;shut('nep');W.arch&&arch();msg('MISSION COMPLETE','Dossier 01 stamped COMPLETED.','🏅')};
+ const upd=()=>{
+  if(st==0){if(K.Space||K.Enter){st=1;K.Space=K.Enter=0;load(0)}return}
+  if(st==2){if(++ct>700)finish();return}
+  tk++;bt>0&&bt--;cd>0&&cd--;fr>0&&fr--;
+  const L=K.ArrowLeft||K.KeyA,R=K.ArrowRight||K.KeyD,J=K.Space||K.ArrowUp||K.KeyW,ice=l.ice,dir=(R?1:0)-(L?1:0),cr=!!((K.ArrowDown||K.KeyS)&&p.on);
+  if(cr!=p.c){const nh=cr?16:28;p.y+=p.h-nh;p.h=nh;p.c=cr}
+  if(dir){p.f=dir;p.vx+=(dir*(cr?1.2:3.6)-p.vx)*(ice?.07:.4)}else p.vx*=ice?.96:.6;
+  if(J&&p.on){p.vy=-12;snd(500,.1)}if(!J&&p.vy<-4)p.vy=-4;
+  if((K.KeyX||K.KeyJ||K.KeyZ)&&!cd){bu.push({x:p.x+(p.f>0?p.w:-6),y:p.y+(cr?5:9),vx:7*p.f,w:6,h:3});cd=16;snd(1000,.05,'sawtooth',.03)}
+  p.x+=p.vx;for(const s of l.P)if(ov(p,s)){p.x=p.vx>0?s.x-p.w:s.x+s.w;p.vx=0}
+  p.x=Math.max(0,Math.min(l.w-p.w,p.x));
+  p.vy=Math.min(p.vy+.55,12);p.y+=p.vy;p.on=0;for(const s of l.P)if(ov(p,s)){if(p.vy>0){p.y=s.y-p.h;p.on=1}else p.y=s.y+s.h;p.vy=0}
+  if(p.y>420)dead=1;
+  bu=bu.filter(q=>{q.x+=q.vx;if(Math.abs(q.x-p.x)>400||l.P.some(s=>ov(q,s)))return 0;
+   for(const e of en)if(ov(q,e)){e.dead=1;sc+=100;snd(300,.1,'sawtooth');return 0}
+   if(b&&!b.hit&&b.hp>0&&ov(q,b)){b.hp--;b.hit=8;snd(200,.1);return 0}return 1});
+  for(const e of en){if(!fr){e.x+=e.d*e.s*.7;if(e.x<e.a||e.x>e.b)e.d*=-1}
+   if(!e.dead&&!fr&&ov(p,e)){if(p.vy>1&&p.y+p.h-e.y<24){e.dead=1;p.vy=-7;sc+=100;snd(400,.1)}else dead=1}}
+  en=en.filter(e=>!e.dead);
+  pk=pk.filter(k=>!ov(p,k)||(fr=480,sc+=50,snd(1200,.15,'sine'),0));
+  for(const [x,y] of l.h)if(ov(p,{x,y,w:14,h:12}))dead=1;
+  if(l.goal&&p.x>l.goal){sc+=500;load(lv+1);return}
+  if(b&&b.hp>0){b.x+=b.d*0.7;if(b.x<300||b.x>740)b.d*=-1;b.t++;b.hit>0&&b.hit--;
+   if(b.t%220==0){eb.push({x:b.x,y:b.y+8,vx:p.x<b.x?-2.2:2.2,w:8,h:5});snd(250,.1,'sawtooth')}
+   if(ov(p,b)&&!b.hit){if(p.vy>0&&p.y+p.h-b.y<30){b.hp-=2;b.hit=30;p.vy=-9;snd(150,.2)}else dead=1}}
+  eb=eb.filter(q=>{q.x+=q.vx;if(ov(p,q))dead=1;return q.x>-20&&q.x<l.w+20});
+  if(b&&b.hp<=0){st=2;ct=0;sc+=2000;snd(660,.4,'triangle')}
+  if(dead){dead=0;snd(120,.5,'sawtooth',.08);if(--lives<0){lives=5;sc=0;load(0)}else load(lv)}};
+ const T=(s,x,y,col,sz=9,al='center')=>{c.font=sz+'px "Press Start 2P",monospace';c.textAlign=al;c.fillStyle=col;c.fillText(s,x,y)};
+ const ag=(x,y,h,f)=>{c.fillStyle='#222';c.fillRect(x-1,y-1,16,3);c.fillRect(x+2,y-4,10,3);c.fillStyle='#e8b88a';c.fillRect(x+2,y+2,10,5);c.fillStyle='#000';c.fillRect(x+(f>0?6:2),y+3,6,2);
+  c.fillStyle='#b89a5a';c.fillRect(x,y+7,14,h-13);c.fillStyle='#333';c.fillRect(x+1,y+h-6,5,6);c.fillRect(x+8,y+h-6,5,6)};
+ const heli=(x,y)=>{c.fillStyle='#3b4a3b';c.fillRect(x,y,60,22);c.fillRect(x+60,y+6,40,6);c.fillRect(x+94,y-6,6,14);c.fillStyle='#8cf';c.fillRect(x+4,y+4,18,10);
+  c.fillStyle='#222';c.fillRect(x+28,y-5,4,5);c.fillRect(x+30-(Math.abs(Math.sin(ct*.8))*60+10),y-8,Math.abs(Math.sin(ct*.8))*120+20,3);c.fillRect(x-2,y+28,70,3);c.fillRect(x+10,y+22,3,6);c.fillRect(x+50,y+22,3,6)};
+ const draw=()=>{
+  c.clearRect(0,0,640,360);
+  if(st==0){c.fillStyle='#000';c.fillRect(0,0,640,360);T('SPY TRAIL',320,90,'#0f0',20);T('TORA BORA INFILTRATION',320,125,'#0f0',11);
+   ['ARROWS / WASD  MOVE','SPACE  JUMP     ↓  CROUCH','X  SHOOT   STOMP ENEMIES','PAGERS FREEZE ENEMIES','DODGE MINES · REACH THE SAFEHOUSE'].forEach((s,i)=>T(s,320,175+i*22,'#ccc',8));
+   if(Math.floor(Date.now()/500)%2)T('PRESS SPACE TO START',320,325,'#ff0',10);return}
+  if(st==2){const t=ct,g=c.createLinearGradient(0,0,0,360);g.addColorStop(0,'#101030');g.addColorStop(1,'#e08040');c.fillStyle=g;c.fillRect(0,0,640,360);
+   c.fillStyle='#2a2a3a';c.fillRect(380,220,200,100);c.fillStyle='#222';c.fillRect(0,320,640,40);
+   const hx=t<180?700-t/180*440:t<420?260:260-(t-420)*3.2,hy=t<180?-30+t/180*300:t<420?270:270-(t-420)*1.6;
+   if(t<300)ag(60+Math.min(1,Math.max(0,(t-100)/200))*198,292,28,1);heli(hx,hy);
+   if(t>300)T('MISSION ACCOMPLISHED.',320,90,'#fff',11);if(t>360)T('TARGET NEUTRALIZED.',320,115,'#fff',11);if(t>420)T('RETURNING TO BASE.',320,140,'#fff',11);return}
+  const cam=Math.max(0,Math.min(l.w-640,p.x-260)),gr=c.createLinearGradient(0,0,0,360);gr.addColorStop(0,l.sky[0]);gr.addColorStop(1,l.sky[1]);c.fillStyle=gr;c.fillRect(0,0,640,360);
+  c.fillStyle='rgba(0,0,0,.25)';for(let i=-1;i<5;i++){const x=i*180-(cam*.3%180)+Math.floor(cam*.3/180)*0,h=120+((i+Math.floor(cam*.3/180)+9)%4)*30;c.fillRect(x,360-h,110,h)}
+  c.save();c.translate(-cam,0);
+  for(const s of l.P){c.fillStyle=l.pc;c.fillRect(s.x,s.y,s.w,s.h);c.fillStyle=l.tp;c.fillRect(s.x,s.y,s.w,4);if(!l.ice&&s.h>60&&s.y<300){c.fillStyle='#ccc';c.fillRect(s.x+s.w/2,s.y-26,2,26)}}
+  for(const [x,y] of l.h){c.fillStyle='#222';c.fillRect(x,y+6,14,6);c.fillStyle='#f33';c.fillRect(x+5,y+3,4,3)}
+  for(const k of pk){c.fillStyle='#0ff';c.fillRect(k.x,k.y,10,10);c.fillStyle='#000';c.fillRect(k.x+2,k.y+2,6,3)}
+  for(const e of en){if(e.t=='d'){c.fillStyle=fr?'#6cf':'#a65';c.fillRect(e.x,e.y+4,20,10);c.fillRect(e.x+(e.d>0?14:0),e.y,8,8);c.fillRect(e.x+2,e.y+12,3,4);c.fillRect(e.x+15,e.y+12,3,4)}
+   else{c.fillStyle=fr?'#6cf':'#444';c.fillRect(e.x,e.y+6,14,22);c.fillStyle='#e8b88a';c.fillRect(e.x+3,e.y,8,6);c.fillStyle='#111';c.fillRect(e.x+2,e.y,10,2);c.fillStyle='#c22';c.fillRect(e.x,e.y+12,14,3)}}
+  if(b&&b.hp>0&&!(b.hit&&b.hit%4<2)){c.fillStyle='#222';c.fillRect(b.x,b.y+8,26,26);c.fillStyle='#d9a77c';c.fillRect(b.x+6,b.y,14,10);c.fillStyle='#ddd';c.fillRect(b.x+5,b.y-2,16,4);T('TARGET',b.x+13,b.y-8,'#f33',7)}
+  c.fillStyle='#ff0';bu.forEach(q=>c.fillRect(q.x,q.y,q.w,q.h));c.fillStyle='#f33';eb.forEach(q=>c.fillRect(q.x,q.y,q.w,q.h));
+  ag(p.x,p.y,p.h,p.f);c.restore();
+  T(`LIVES ${lives}  SCORE ${sc}`,8,18,'#fff',8,'left');if(fr)T('FREEZE '+Math.ceil(fr/60),632,18,'#0ff',8,'right');
+  if(b){c.fillStyle='#400';c.fillRect(200,30,240,8);c.fillStyle='#f33';c.fillRect(200,30,240*Math.max(0,b.hp)/3,8)}
+  if(bt>0)T(bm,320,70,'#fff',10)};
+ const mus=setInterval(()=>{const M=[220,0,262,0,330,0,262,0,196,0,247,0,294,0,247,0];mus.i=(mus.i||0)+1;const f=M[mus.i%16];f&&st==1&&snd(f,.15,'triangle',.03)},180);
+ const loop=t=>{raf=requestAnimationFrame(loop);acc+=Math.min(t-last,100);last=t;while(acc>=16.67){upd();acc-=16.67}draw()};
+ raf=requestAnimationFrame(loop)}
+</script></body></html>
