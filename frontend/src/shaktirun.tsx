@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { note, say, sfx } from './sound'
 
 const VW = 560, VH = 300, GROUND = 250, B = 30
-const GRAV = 0.6, JUMP = -12.5, WALK = 4, RUN = 6.5
+const GRAV = 0.45, JUMP = -10.8, WALK = 2.6, RUN = 4.2
 
 type EnemyKind = 'cactus' | 'turtle' | 'crab' | 'kilvish'
 interface Enemy { kind: EnemyKind; x: number; vx: number; min: number; max: number; dead?: boolean; hp?: number; hurt?: number }
@@ -21,27 +21,24 @@ const walker = (kind: EnemyKind, x: number, range: number, speed: number): Enemy
 
 function makeLevel(n: number): Level {
   if (n === 1) return {
-    name: '1-1 Gangadhar ka Gaon', length: 3600, dark: false, checkpoint: 1800,
-    gaps: [[1100, 90], [2050, 110], [2900, 120]],
-    plats: [{ x: 520, y: 170, w: 120 }, { x: 1500, y: 160, w: 140 }, { x: 2600, y: 150, w: 120 }],
-    movers: [{ x: 2040, y: 190, w: 90, min: 1990, max: 2160, vx: 1.2, dx: 0 }, { x: 2890, y: 180, w: 90, min: 2860, max: 3030, vx: 1.5, dx: 0 }],
-    blocks: [{ x: 330, y: 160, gives: 'coin' }, { x: 360, y: 160, gives: 'chakra' }, { x: 390, y: 160, gives: 'coin' },
-      { x: 1300, y: 150, gives: 'coin' }, { x: 1750, y: 160, gives: 'coin' }, { x: 1780, y: 160, gives: 'coin' }, { x: 2400, y: 160, gives: 'chakra' }],
-    enemies: [{ kind: 'cactus', x: 700, vx: 0, min: 0, max: 0 }, walker('turtle', 900, 100, -1), walker('crab', 1400, 80, 1.5),
-      { kind: 'cactus', x: 1650, vx: 0, min: 0, max: 0 }, walker('turtle', 2300, 90, -1), walker('crab', 2500, 70, 1.8),
-      { kind: 'cactus', x: 3200, vx: 0, min: 0, max: 0 }, walker('turtle', 3350, 90, -1.2)],
-    coins: [[540, 140], [575, 140], [610, 140], [1520, 130], [1560, 130], [1600, 130], [2620, 120], [2660, 120], [2700, 120]],
+    name: '1-1 Gangadhar ka Gaon', length: 1400, dark: false, checkpoint: 700,
+    gaps: [[620, 70], [1050, 80]],
+    plats: [{ x: 420, y: 170, w: 110 }],
+    movers: [{ x: 1045, y: 190, w: 80, min: 1020, max: 1110, vx: 0.7, dx: 0 }],
+    blocks: [{ x: 230, y: 165, gives: 'coin' }, { x: 260, y: 165, gives: 'chakra' }, { x: 290, y: 165, gives: 'coin' }, { x: 820, y: 160, gives: 'coin' }],
+    enemies: [{ kind: 'cactus', x: 560, vx: 0, min: 0, max: 0 }, walker('turtle', 380, 50, -0.6), walker('crab', 900, 60, 0.8),
+      walker('turtle', 1250, 50, -0.7)],
+    coins: [[440, 140], [475, 140], [510, 140], [1200, 200], [1230, 200]],
   }
   return {
-    name: '1-2 Kilvish ka Kila', length: 3000, dark: true, checkpoint: 1500,
-    gaps: [[600, 100], [1200, 140], [1900, 140]],
-    plats: [{ x: 900, y: 160, w: 120 }, { x: 1600, y: 150, w: 120 }],
-    movers: [{ x: 590, y: 190, w: 90, min: 560, max: 720, vx: 1.4, dx: 0 }, { x: 1200, y: 170, w: 80, min: 1180, max: 1350, vx: 1.8, dx: 0 },
-      { x: 1890, y: 180, w: 80, min: 1870, max: 2050, vx: 2, dx: 0 }],
-    blocks: [{ x: 400, y: 160, gives: 'chakra' }, { x: 1050, y: 150, gives: 'coin' }, { x: 2200, y: 160, gives: 'chakra' }],
-    enemies: [walker('crab', 450, 80, 1.8), walker('turtle', 1000, 70, -1.3), { kind: 'cactus', x: 1450, vx: 0, min: 0, max: 0 },
-      walker('crab', 1750, 60, 2), { ...walker('kilvish', 2700, 140, -1.6), hp: 3 }],
-    coins: [[920, 130], [960, 130], [1000, 130], [1620, 120], [1660, 120]],
+    name: '1-2 Kilvish ka Kila', length: 1300, dark: true, checkpoint: 650,
+    gaps: [[400, 80], [800, 80]],
+    plats: [{ x: 560, y: 165, w: 110 }],
+    movers: [{ x: 795, y: 190, w: 80, min: 775, max: 860, vx: 0.8, dx: 0 }],
+    blocks: [{ x: 220, y: 165, gives: 'chakra' }, { x: 600, y: 105, gives: 'coin' }],
+    enemies: [walker('crab', 300, 50, 0.9), { kind: 'cactus', x: 690, vx: 0, min: 0, max: 0 },
+      { ...walker('kilvish', 1100, 110, -0.9), hp: 3 }],
+    coins: [[580, 135], [615, 135], [650, 135]],
   }
 }
 
