@@ -177,7 +177,7 @@ export default function App() {
     { label: 'Recycle Bin', icon: '🗑️', run: () => open({ app: 'recycle' }) },
     { label: 'Games', icon: '🎮', run: () => open({ app: 'explorer', path: ['C:', 'Games'] }) },
     { label: 'DO_NOT_OPEN.txt', icon: '📄', run: () => open({ app: 'notepad', title: 'DO_NOT_OPEN.txt', content: 'ok you opened it.\n\nnow Mummy knows.\n\n(she always knows)' }) },
-    { label: 'Lakshmi Chit Fund', icon: '💸', run: () => runExe(makeOS(0), 'chitfund') },
+    { label: 'Hawala', icon: '💸', run: () => runExe(makeOS(0), 'chitfund') },
   ]
 
   return (
