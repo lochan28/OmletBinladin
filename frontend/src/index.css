@@ -1,68 +1,120 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: "Pixelated MS Sans Serif", Arial, sans-serif; font-size: 11px; background: #000; user-select: none; }
+.emoji { font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif; }
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* ---------- boot ---------- */
+.bios { color: #c0c0c0; background: #000; height: 100%; margin: 0; padding: 24px; font: 16px/1.4 "Courier New", monospace; cursor: pointer; }
+.cursor { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.splash { height: 100%; background: linear-gradient(#000 0 15%, #0a1a5c 15% 85%, #000 85%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; cursor: pointer; }
+.splash-logo { display: flex; align-items: center; gap: 16px; }
+.splash-logo .flag { font-size: 80px; filter: drop-shadow(0 0 20px #4af); }
+.splash-logo h1 { font: italic bold 64px Arial, sans-serif; margin: 0; }
+.splash-logo sup { font-size: 28px; color: #f80; }
+.splash-bar { margin-top: 60px; width: 60%; height: 6px; background: linear-gradient(90deg, #00f, #0ff, #00f, #f0f, #00f); background-size: 200% 100%; animation: slide 1.2s linear infinite; }
+@keyframes slide { to { background-position: -200% 0; } }
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* ---------- desktop ---------- */
+.desktop { position: relative; height: 100%; background: #008080; overflow: hidden; }
+.desk-icons { position: absolute; top: 8px; left: 8px; bottom: 36px; display: flex; flex-direction: column; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+.desk-icon, .file-icon { all: unset; width: 76px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; cursor: default; padding: 2px; }
+.desk-icon .emoji, .file-icon .emoji { font-size: 32px; line-height: 1; }
+.desk-icon .lbl { color: #fff; padding: 1px 2px; word-break: break-word; }
+.desk-icon.sel .lbl, .desk-icon:focus .lbl { background: #000080; outline: 1px dotted #ff0; }
+.file-icon { color: #000; word-break: break-all; }
+.file-icon:focus span:last-child { background: #000080; color: #fff; }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+.window { position: absolute; min-width: 200px; display: flex; flex-direction: column; }
+.window.max { left: 0 !important; top: 0 !important; width: 100% !important; height: calc(100% - 30px) !important; }
+.window-body { margin: 0; flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: auto; max-height: calc(100vh - 80px); }
+.title-bar { cursor: default; touch-action: none; }
+.app-col { display: flex; flex-direction: column; min-width: 480px; flex: 1; }
+.menubar { padding: 2px 4px; word-spacing: 12px; }
+.toolbar { display: flex; align-items: center; gap: 4px; padding: 3px; border-bottom: 1px solid #808080; }
+.toolbar button { min-width: auto; padding: 0 8px; }
+.notepad { flex: 1; min-height: 300px; width: 560px; resize: both; font: 14px "Courier New", monospace; }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+.explorer-body { display: flex; height: 320px; background: #fff; box-shadow: inset 1px 1px #808080; }
+.explorer-side { width: 150px; padding: 10px; background: linear-gradient(#fff, #c0d8ff); }
+.icon-grid { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; padding: 8px; overflow: auto; }
+.icon-grid.white { background: #fff; min-height: 220px; }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+.photo { height: 220px; display: flex; align-items: center; justify-content: center; position: relative; font-size: 56px; border: 6px solid #fff; box-shadow: 1px 1px 4px #000; }
+.photo em { position: absolute; right: 8px; bottom: 6px; font: bold 14px "Courier New"; color: #ff8a00; text-shadow: 0 0 3px #f00; }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+.calc-display { width: 100%; text-align: right; font-size: 16px; margin-bottom: 8px; }
+.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 6px; }
+.calc-grid button { min-width: 0; height: 30px; }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.palette { display: flex; gap: 2px; padding: 4px; }
+.palette button { min-width: 0; width: 20px; height: 20px; padding: 0; }
+.palette .sel { outline: 2px solid #000; }
+
+.cricket-bar { position: relative; height: 30px; background: #3fa34d; box-shadow: inset 1px 1px #000; margin: 8px 0; }
+.cricket-bar .zone { position: absolute; left: 40%; width: 20%; height: 100%; background: #9f9; }
+.cricket-bar .ball { position: absolute; top: 4px; transform: translateX(-50%); font-size: 18px; }
+
+/* ---------- taskbar / start ---------- */
+.taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; background: #c0c0c0; box-shadow: inset 0 1px #fff; display: flex; align-items: center; gap: 4px; padding: 2px; z-index: 9999; }
+.start-btn { min-width: auto; padding: 0 6px; height: 24px; }
+.taskbar button.active, .start-btn.active { box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; background: repeating-conic-gradient(#c0c0c0 0 25%, #fff 0 50%) 0 0 / 2px 2px; }
+.tasks { flex: 1; display: flex; gap: 3px; overflow: hidden; }
+.tasks button { max-width: 160px; height: 24px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: left; }
+.tray { display: flex; gap: 8px; align-items: center; padding: 0 8px; height: 24px; box-shadow: inset -1px -1px #fff, inset 1px 1px #808080; }
+
+.start-menu { left: 2px; bottom: 30px; flex-direction: row; z-index: 10000; }
+.start-side { writing-mode: vertical-rl; transform: rotate(180deg); background: linear-gradient(#000080, #1084d0); color: #c0c0c0; font-size: 20px; padding: 6px 4px; }
+.start-side b { color: #fff; }
+.start-menu ul { list-style: none; margin: 0; padding: 2px; min-width: 180px; }
+.start-menu li { padding: 6px 20px 6px 8px; font-size: 12px; cursor: default; }
+.start-menu li:hover { background: #000080; color: #fff; }
+
+/* ---------- clippy ---------- */
+.clippy { position: absolute; right: 20px; bottom: 50px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; }
+.clippy .bubble { background: #ffffe1; border: 1px solid #000; border-radius: 8px; padding: 8px; max-width: 220px; margin-bottom: 6px; font-size: 12px; }
+.clippy .clip { font-size: 56px; cursor: pointer; position: relative; animation: bob 2s ease-in-out infinite; }
+.clippy .eyes { position: absolute; font-size: 18px; top: 10px; left: 14px; }
+@keyframes bob { 50% { transform: translateY(-6px) rotate(-6deg); } }
+
+/* ---------- bsod / off ---------- */
+.bsod { background: #0000aa; color: #fff; height: 100%; padding: 12% 15%; font: 18px/1.5 "Courier New", monospace; cursor: pointer; }
+.bsod-title { background: #aaa; color: #0000aa; padding: 0 6px; }
+.bsod p { margin: 0 0 24px; }
+.off { background: #000; color: #ff8a00; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; font: bold 36px Arial; text-align: center; cursor: pointer; }
+.off small { font-size: 12px; color: #444; margin-top: 30px; font-weight: normal; }
+
+/* ---------- effects ---------- */
+.shake { animation: shake 0.12s linear 5; }
+@keyframes shake { 25% { transform: translate(-8px, 4px); } 75% { transform: translate(8px, -4px); } }
+.party { animation: party 0.5s linear infinite; }
+@keyframes party { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+
+/* ---------- IE + sites ---------- */
+.ie-page { height: 380px; width: 640px; overflow: auto; background: #fff; box-shadow: inset 1px 1px #808080; user-select: text; }
+.dialing { height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 14px; }
+.site { padding: 10px; font-family: "Times New Roman", serif; font-size: 15px; }
+.site a { color: #00e; }
+.center { text-align: center; }
+.khojo-logo { text-align: center; font: bold 56px Georgia, serif; margin: 10px 0; }
+.portal { width: 100%; margin-top: 12px; border-collapse: collapse; }
+.portal td { vertical-align: top; border: 1px solid #99c; padding: 6px; background: #eef; font-size: 13px; }
+.geo { background: #000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ctext x='5' y='25' font-size='14' fill='%23333'%3E★%3C/text%3E%3C/svg%3E"); color: #0f0; font-family: "Comic Sans MS", cursive; }
+.geo a { color: #ff0; }
+.rainbow { text-align: center; background: linear-gradient(90deg, red, orange, yellow, lime, cyan, magenta); -webkit-background-clip: text; color: transparent; }
+.blink { text-align: center; color: #ff0; animation: blink 0.8s steps(1) infinite; }
+.counter { background: #000; color: #f00; font-family: "Courier New"; border: 2px inset #888; padding: 0 4px; }
+.mail-head { background: #036; color: #fff; padding: 6px; font-weight: bold; }
+.mail-list { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mail-list td { padding: 4px; border-bottom: 1px solid #ccc; cursor: pointer; }
+.mail-list tr.sel { background: #000080; color: #fff; }
+.mail-body { white-space: pre-wrap; font: 13px "Courier New"; background: #ffe; padding: 8px; border: 1px solid #ccc; }
+.rukawat { text-align: center; background: #111; color: #fff; min-height: 100%; }
+.testcard { display: flex; height: 160px; }
+.testcard div { flex: 1; }
+
+/* phones: let windows fill the screen */
+@media (max-width: 700px) {
+  .window { left: 0 !important; top: 0 !important; width: 100% !important; max-height: calc(100% - 30px); }
+  .app-col, .ie-page, .notepad { min-width: 0; width: 100%; }
 }
