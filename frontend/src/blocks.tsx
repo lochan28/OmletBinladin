@@ -11,7 +11,7 @@ const SHAPES = [
   { c: '#0000f0', m: [[1, 0, 0], [1, 1, 1]] },
   { c: '#f0a000', m: [[0, 0, 1], [1, 1, 1]] },
 ]
-const clearLines = ['Sorry Shaktimaan!', 'Andhera kayamat hai!', 'Shaktimaan aa gaya!']
+const clearLines = ['Udd gaya!', 'Line clear!', 'Shabaash!']
 
 type Grid = (string | null)[][]
 interface Piece { m: number[][]; c: string; x: number; y: number }
@@ -30,31 +30,36 @@ export function Blocks() {
   const [piece, setPiece] = useState(rand)
   const [score, setScore] = useState(0)
   const [over, setOver] = useState(false)
-  const [hero, setHero] = useState<string | null>(null)
-  const state = useRef({ grid, piece, over })
-  state.current = { grid, piece, over }
+  const [planeRows, setPlaneRows] = useState<number[]>([])
+  const state = useRef({ grid, piece, over, busy: false })
+  state.current = { grid, piece, over, busy: planeRows.length > 0 }
+
+  const spawn = useCallback((g: Grid) => {
+    const next = rand()
+    if (!fits(g, next)) { setOver(true); sfx.shutdown(); say('Picture abhi baaki hai mere dost') }
+    setPiece(next)
+  }, [])
 
   const lock = useCallback((g: Grid, p: Piece) => {
     const ng = g.map(r => [...r])
     p.m.forEach((r, dy) => r.forEach((v, dx) => { if (v && p.y + dy >= 0) ng[p.y + dy][p.x + dx] = p.c }))
-    const kept = ng.filter(r => r.some(c => !c))
-    const cleared = H - kept.length
-    if (cleared) {
-      setScore(s => s + [0, 100, 300, 500, 800][cleared])
-      const line = clearLines[Math.floor(Math.random() * clearLines.length)]
-      setHero(line); sfx.tada(); say(line)
-      setTimeout(() => setHero(null), 1800)
-    } else sfx.click()
-    const filled = [...Array.from({ length: cleared }, () => Array(W).fill(null)), ...kept]
-    const next = rand()
-    setGrid(filled)
-    if (!fits(filled, next)) { setOver(true); sfx.shutdown(); say('Picture abhi baaki hai mere dost') }
-    setPiece(next)
-  }, [])
+    const full = ng.map((r, i) => (r.every(c => c) ? i : -1)).filter(i => i >= 0)
+    setGrid(ng)
+    if (!full.length) { sfx.click(); return spawn(ng) }
+    // plane flies along each full row, then the row vanishes
+    setScore(s => s + [0, 100, 300, 500, 800][full.length])
+    setPlaneRows(full); sfx.dialup(); say(clearLines[Math.floor(Math.random() * clearLines.length)])
+    setPiece({ ...p, m: [[0]] })
+    setTimeout(() => {
+      const kept = ng.filter((_, i) => !full.includes(i))
+      const filled = [...Array.from({ length: full.length }, () => Array(W).fill(null)), ...kept]
+      setGrid(filled); setPlaneRows([]); sfx.tada(); spawn(filled)
+    }, 1100)
+  }, [spawn])
 
   const move = useCallback((dx: number, dy: number, rot = false) => {
-    const { grid: g, piece: p, over: o } = state.current
-    if (o) return
+    const { grid: g, piece: p, over: o, busy } = state.current
+    if (o || busy) return
     const np = { ...p, x: p.x + dx, y: p.y + dy, m: rot ? rotate(p.m) : p.m }
     if (fits(g, np)) setPiece(np)
     else if (dy) lock(g, p)
@@ -68,7 +73,7 @@ export function Blocks() {
   const onKey = (e: React.KeyboardEvent) => {
     const k: Record<string, () => void> = {
       ArrowLeft: () => move(-1, 0), ArrowRight: () => move(1, 0), ArrowDown: () => move(0, 1), ArrowUp: () => move(0, 0, true),
-      ' ': () => { const { grid: g, piece: p } = state.current; let y = p.y; while (fits(g, { ...p, y: y + 1 })) y++; lock(g, { ...p, y }) },
+      ' ': () => { const { grid: g, piece: p, busy } = state.current; if (busy) return; let y = p.y; while (fits(g, { ...p, y: y + 1 })) y++; lock(g, { ...p, y }) },
     }
     if (k[e.key]) { e.preventDefault(); k[e.key]() }
   }
@@ -79,14 +84,14 @@ export function Blocks() {
   return (
     <div className="blocks" tabIndex={0} autoFocus onKeyDown={onKey} ref={el => el?.focus()}>
       <div className="blocks-board">
-        {view.flat().map((c, i) => <div key={i} className="cell" style={c ? { background: c } : undefined} />)}
-        {hero && <div className="hero-fly"><span className="emoji">🌀🦸</span><b>{hero}</b></div>}
+        {view.flat().map((c, i) => <div key={i} className={`cell ${planeRows.includes(Math.floor(i / W)) ? "poof" : ""}`} style={c ? { background: c, animationDelay: `${(i % W) * 0.08}s` } : undefined} />)}
+        {planeRows.map(r => <div key={r} className="plane" style={{ top: r * 18 - 4 }}><span className="emoji">✈️</span></div>)}
         {over && <div className="blocks-over">GAME OVER<br /><small>Picture abhi baaki hai mere dost</small></div>}
       </div>
       <div className="blocks-side">
         <p>Score<br /><b>{score}</b></p>
         <p><small>← → move<br />↑ rotate<br />↓ drop<br />Space slam</small></p>
-        <p><small>Clear a line to summon Shaktimaan.</small></p>
+        <p><small>Clear a line and a plane takes it away.</small></p>
         {over && <button onClick={() => { setGrid(empty()); setPiece(rand()); setScore(0); setOver(false) }}>Play again</button>}
       </div>
     </div>
