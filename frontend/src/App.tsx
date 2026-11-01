@@ -14,7 +14,7 @@ const meta: Record<AppSpec['app'], { title: string; icon: string }> = {
   notepad: { title: 'Notepad', icon: '📝' }, explorer: { title: 'Exploring', icon: '📁' }, recycle: { title: 'Recycle Bin', icon: '🗑️' },
   ie: { title: 'Microsoft Internet Explorer', icon: '🌐' }, calc: { title: 'Calculator', icon: '🧮' }, paint: { title: 'untitled - Paint', icon: '🎨' },
   image: { title: 'Image Preview', icon: '🖼️' }, msg: { title: 'Message', icon: 'ℹ️' }, password: { title: 'Enter Password', icon: '🔒' },
-  cricket: { title: 'Cricket 99', icon: '🏏' }, run: { title: 'Run', icon: '🏃' }, blocks: { title: 'Shaktimaan Blocks', icon: '🧱' }, shaktirun: { title: 'Shaktimaan Run', icon: '🦸' },
+  cricket: { title: 'Cricket 99', icon: '🏏' }, run: { title: 'Run', icon: '🏃' }, blocks: { title: 'Shaktimaan Blocks', icon: '🧱' }, shaktirun: { title: 'Super Shaktimaan 98', icon: '🦸' },
 }
 
 const clippyLines = [
@@ -234,7 +234,7 @@ export default function App() {
             <li onClick={() => open({ app: 'calc' })}>🧮 Calculator</li>
             <li onClick={() => open({ app: 'cricket' })}>🏏 Cricket 99</li>
             <li onClick={() => open({ app: 'blocks' })}>🧱 Shaktimaan Blocks</li>
-            <li onClick={() => open({ app: 'shaktirun' })}>🦸 Shaktimaan Run</li>
+            <li onClick={() => open({ app: 'shaktirun' })}>🦸 Super Shaktimaan 98</li>
             <li onClick={() => open({ app: 'msg', title: 'Help', icon: '❓', text: 'Windows Help is unavailable.\n\nPlease ask the nearest 12-year-old.' })}>❓ Help</li>
             <li onClick={() => open({ app: 'run' })}>🏃 Run...</li>
             <hr />

@@ -80,3 +80,6 @@ export function say(text: string, lang = 'hi-IN') {
   speechSynthesis.cancel()
   speechSynthesis.speak(u)
 }
+
+// Single soft chiptune note, used for in-game background music.
+export function note(freq: number, dur = 0.15, type: OscillatorType = 'square', vol = 0.03) { tone(freq, 0, dur, type, vol) }
