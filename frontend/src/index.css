@@ -132,7 +132,7 @@ body { font-family: "Pixelated MS Sans Serif", Arial, sans-serif; font-size: 11p
 @keyframes spin { to { transform: rotate(360deg); } }
 .blocks-over { position: absolute; inset: 0; background: rgba(0,0,0,.75); color: #f00; font: bold 20px "Courier New"; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .blocks-over small { color: #fff; font-size: 11px; margin-top: 8px; }
-.plane { position: absolute; left: -40px; font-size: 22px; animation: plane-fly 1.1s linear forwards; z-index: 2; }
-@keyframes plane-fly { to { left: 200px; } }
+.plane { position: fixed; left: -60px; font-size: 26px; animation: plane-fly 1.1s linear forwards; z-index: 99999; pointer-events: none; }
+@keyframes plane-fly { to { left: 100vw; } }
 .cell.poof { animation: poof .3s ease-out forwards; }
 @keyframes poof { to { transform: scale(0); opacity: 0; } }

@@ -31,6 +31,7 @@ export function Blocks() {
   const [score, setScore] = useState(0)
   const [over, setOver] = useState(false)
   const [planeRows, setPlaneRows] = useState<number[]>([])
+  const boardRef = useRef<HTMLDivElement>(null)
   const state = useRef({ grid, piece, over, busy: false })
   state.current = { grid, piece, over, busy: planeRows.length > 0 }
 
@@ -83,9 +84,9 @@ export function Blocks() {
 
   return (
     <div className="blocks" tabIndex={0} autoFocus onKeyDown={onKey} ref={el => el?.focus()}>
-      <div className="blocks-board">
+      <div className="blocks-board" ref={boardRef}>
         {view.flat().map((c, i) => <div key={i} className={`cell ${planeRows.includes(Math.floor(i / W)) ? "poof" : ""}`} style={c ? { background: c, animationDelay: `${(i % W) * 0.08}s` } : undefined} />)}
-        {planeRows.map(r => <div key={r} className="plane" style={{ top: r * 18 - 4 }}><span className="emoji">✈️</span></div>)}
+        {planeRows.map(r => <div key={r} className="plane" style={{ top: (boardRef.current?.getBoundingClientRect().top ?? 0) + r * 18 - 6 }}><span className="emoji">✈️</span></div>)}
         {over && <div className="blocks-over">GAME OVER<br /><small>Picture abhi baaki hai mere dost</small></div>}
       </div>
       <div className="blocks-side">
