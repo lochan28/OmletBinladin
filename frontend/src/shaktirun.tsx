@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { note, say, sfx } from './sound'
 
 const VW = 560, VH = 300, GROUND = 250, B = 30
-const GRAV = 0.45, JUMP = -10.8, WALK = 2.6, RUN = 4.2
+const GRAV = 0.45, JUMP = -12, WALK = 2.6, RUN = 4.2
 
 type EnemyKind = 'cactus' | 'turtle' | 'crab' | 'kilvish'
 interface Enemy { kind: EnemyKind; x: number; vx: number; min: number; max: number; dead?: boolean; hp?: number; hurt?: number }
@@ -22,22 +22,20 @@ const walker = (kind: EnemyKind, x: number, range: number, speed: number): Enemy
 function makeLevel(n: number): Level {
   if (n === 1) return {
     name: '1-1 Gangadhar ka Gaon', length: 1400, dark: false, checkpoint: 700,
-    gaps: [[620, 70], [1050, 80]],
+    gaps: [[650, 45]],
     plats: [{ x: 420, y: 170, w: 110 }],
-    movers: [{ x: 1045, y: 190, w: 80, min: 1020, max: 1110, vx: 0.7, dx: 0 }],
+    movers: [{ x: 1000, y: 190, w: 90, min: 980, max: 1060, vx: 0.5, dx: 0 }],
     blocks: [{ x: 230, y: 165, gives: 'coin' }, { x: 260, y: 165, gives: 'chakra' }, { x: 290, y: 165, gives: 'coin' }, { x: 820, y: 160, gives: 'coin' }],
-    enemies: [{ kind: 'cactus', x: 560, vx: 0, min: 0, max: 0 }, walker('turtle', 380, 50, -0.6), walker('crab', 900, 60, 0.8),
-      walker('turtle', 1250, 50, -0.7)],
+    enemies: [walker('turtle', 500, 40, -0.4), walker('crab', 900, 40, 0.5)],
     coins: [[440, 140], [475, 140], [510, 140], [1200, 200], [1230, 200]],
   }
   return {
     name: '1-2 Kilvish ka Kila', length: 1300, dark: true, checkpoint: 650,
-    gaps: [[400, 80], [800, 80]],
+    gaps: [[450, 45]],
     plats: [{ x: 560, y: 165, w: 110 }],
-    movers: [{ x: 795, y: 190, w: 80, min: 775, max: 860, vx: 0.8, dx: 0 }],
+    movers: [],
     blocks: [{ x: 220, y: 165, gives: 'chakra' }, { x: 600, y: 105, gives: 'coin' }],
-    enemies: [walker('crab', 300, 50, 0.9), { kind: 'cactus', x: 690, vx: 0, min: 0, max: 0 },
-      { ...walker('kilvish', 1100, 110, -0.9), hp: 3 }],
+    enemies: [walker('crab', 300, 40, 0.5), { ...walker('kilvish', 1100, 80, -0.5), hp: 2 }],
     coins: [[580, 135], [615, 135], [650, 135]],
   }
 }
@@ -51,7 +49,7 @@ const DARK_TUNE: [number, number][] = [[220, 1], [262, 1], [247, 1], [208, 1], [
 
 export function ShaktiRun() {
   const canvas = useRef<HTMLCanvasElement>(null)
-  const [hud, setHud] = useState({ lives: 3, coins: 0, score: 0, time: 300, level: '', msg: 'Shaktimaan is arriving...' })
+  const [hud, setHud] = useState({ lives: 5, coins: 0, score: 0, time: 300, level: '', msg: 'Shaktimaan is arriving...' })
   const [run, setRun] = useState(0)
 
   useEffect(() => {
@@ -60,7 +58,7 @@ export function ShaktiRun() {
     const keys: Record<string, boolean> = {}
     let levelNo = 1, L = makeLevel(1)
     let items: Item[] = [], popups: Popup[] = []
-    let lives = 3, coins = 0, score = 0, time = 300, cam = 0, done = false, raf = 0, checkpoint = 40
+    let lives = 5, coins = 0, score = 0, time = 300, cam = 0, done = false, raf = 0, checkpoint = 40
     const p = { x: 40, y: -120, vx: 0, vy: 0, spin: 0, ground: false, inv: 0, entering: true, big: false, jumpHeld: false, on: null as Mover | null }
     let msg = 'Shaktimaan is arriving...'
     const sync = (m?: string) => { if (m) msg = m; setHud({ lives, coins, score, time, level: L.name, msg }) }
@@ -95,7 +93,7 @@ export function ShaktiRun() {
     const hurt = () => {
       if (p.inv > 0 || done || p.entering) return
       if (p.big) { p.big = false; p.inv = 90; sfx.error(); say('Sorry Shaktimaan'); return sync('Chakra lost! One more hit and you are out.') }
-      p.inv = 90; p.vy = -8; p.x = Math.max(0, p.x - 60)
+      p.inv = 150; p.vy = -8; p.x = Math.max(0, p.x - 60)
       loseLife('Ouch!')
     }
 
@@ -159,7 +157,7 @@ export function ShaktiRun() {
         }
         p.spin = p.ground ? 0 : p.spin + 0.35
         if (p.inv > 0) p.inv--
-        if (p.y > VH + 60) { p.inv = 0; loseLife('Fell in a pit!') }
+        if (p.y > VH + 60) { sfx.error(); say('Sorry Shaktimaan'); sync('Fell in a pit! No worries, try again.'); enter(false) }
         if (p.x >= L.checkpoint && checkpoint < L.checkpoint) { checkpoint = L.checkpoint; sync('Checkpoint! 🚩') }
 
         // items
@@ -185,8 +183,8 @@ export function ShaktiRun() {
           if (t.hurt) t.hurt--
           if (t.vx) { t.x += t.vx; if (t.x < t.min || t.x > t.max) t.vx *= -1 }
           const dx = Math.abs(p.x - t.x), dy = p.y - GROUND
-          if (dx < 24 && dy > -(t.kind === 'kilvish' ? 40 : 30)) {
-            const stomp = p.vy > 0 && p.y < GROUND - 6 && t.kind !== 'cactus'
+          if (dx < 18 && dy > -(t.kind === 'kilvish' ? 34 : 22)) {
+            const stomp = p.vy > 0 && p.y < GROUND - 2 && t.kind !== 'cactus'
             if (stomp && !t.hurt) {
               p.vy = -10; sfx.tada()
               if (t.kind === 'kilvish') {

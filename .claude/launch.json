@@ -1,6 +1,29 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "win98", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--prefix", "frontend"], "port": 5173 }
+    {
+      "name": "win98",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "frontend"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "cia",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "http-server@14.1.1",
+        "cia-parody",
+        "-p",
+        "5180",
+        "-c-1"
+      ],
+      "port": 5180
+    }
   ]
 }
